@@ -1,90 +1,719 @@
-<div class="menu-container">
-  <h1 class="game-title">SURVIVING THIS HELL<span class="subtitle">ISN'T SIMPLE</span></h1>
-  <div class="button-group">
-    <button class="menu-btn" onclick="handleMenu('start')">START GAME</button>
-    <button class="menu-btn" onclick="handleMenu('load')">LOAD GAME</button>
-    <button class="menu-btn" onclick="handleMenu('new')">NEW GAME</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SURVIVING THIS HELL</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #2a0808 0%, #0a0202 100%);
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated background effect */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        rgba(255, 0, 0, 0.03) 0px,
+        rgba(255, 0, 0, 0.03) 2px,
+        transparent 2px,
+        transparent 4px
+      );
+      pointer-events: none;
+      animation: flicker 0.15s infinite;
+      z-index: 1;
+    }
+
+    @keyframes flicker {
+      0% { opacity: 0.97; }
+      50% { opacity: 1; }
+      100% { opacity: 0.97; }
+    }
+
+    .menu-wrapper {
+      position: relative;
+      z-index: 2;
+    }
+
+    .menu-container {
+      text-align: center;
+      background: rgba(15, 5, 5, 0.85);
+      padding: 3.5rem 4rem;
+      border-radius: 8px;
+      border: 2px solid rgba(255, 60, 0, 0.4);
+      box-shadow: 0 0 60px rgba(230, 57, 70, 0.4), 
+                  inset 0 0 25px rgba(255, 50, 0, 0.15),
+                  0 0 100px rgba(255, 183, 3, 0.1);
+      animation: slideIn 0.8s ease-out;
+      max-width: 600px;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .game-title {
+      color: #e63946;
+      font-size: 2.8rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(230, 57, 70, 0.6), 2px 2px 0px #000;
+      line-height: 1.1;
+      animation: glow 2s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 15px rgba(230, 57, 70, 0.6), 2px 2px 0px #000; }
+      50% { text-shadow: 0 0 30px rgba(230, 57, 70, 0.9), 2px 2px 0px #000; }
+    }
+
+    .subtitle {
+      display: block;
+      font-size: 1.6rem;
+      color: #ffb703;
+      letter-spacing: 6px;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
+    }
+
+    .version {
+      font-size: 0.9rem;
+      color: rgba(255, 183, 3, 0.6);
+      letter-spacing: 2px;
+      margin-bottom: 2rem;
+      text-transform: uppercase;
+    }
+
+    .difficulty-selector {
+      background: rgba(30, 10, 10, 0.6);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      border-radius: 4px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .difficulty-btn {
+      background: rgba(20, 10, 10, 0.7);
+      color: #d8d8d8;
+      border: 1px solid #801d1d;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.85rem;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-transform: uppercase;
+      border-radius: 3px;
+    }
+
+    .difficulty-btn:hover,
+    .difficulty-btn.active {
+      background: #ffb703;
+      color: #0a0202;
+      border-color: #ffb703;
+      box-shadow: 0 0 15px rgba(255, 183, 3, 0.5);
+      transform: scale(1.05);
+    }
+
+    .difficulty-btn:active {
+      transform: scale(0.98);
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .button-group.full-width {
+      grid-template-columns: 1fr;
+    }
+
+    .menu-btn {
+      background: rgba(20, 10, 10, 0.8);
+      color: #d8d8d8;
+      border: 2px solid #801d1d;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+      font-weight: 700;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      text-transform: uppercase;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: #ffb703;
+      transition: left 0.3s ease-in-out;
+      z-index: -1;
+    }
+
+    .menu-btn:hover {
+      color: #0a0202;
+      border-color: #ffb703;
+      box-shadow: 0 0 25px rgba(255, 183, 3, 0.6);
+      transform: scale(1.03);
+    }
+
+    .menu-btn:hover::before {
+      left: 0;
+    }
+
+    .menu-btn:active {
+      transform: scale(0.98);
+    }
+
+    .menu-btn.primary {
+      border-color: #e63946;
+      color: #e63946;
+    }
+
+    .menu-btn.primary::before {
+      background: #e63946;
+    }
+
+    .menu-btn.primary:hover {
+      color: #fff;
+    }
+
+    .secondary-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .menu-btn.secondary {
+      padding: 0.8rem 1rem;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+    }
+
+    .settings-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(2px);
+    }
+
+    .settings-modal.active {
+      display: flex;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: rgba(15, 5, 5, 0.95);
+      border: 2px solid rgba(255, 60, 0, 0.4);
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 500px;
+      box-shadow: 0 0 60px rgba(230, 57, 70, 0.4);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .modal-title {
+      color: #e63946;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .settings-option {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .settings-option label {
+      color: #ffb703;
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .toggle-switch {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(30, 10, 10, 0.6);
+      border: 1px solid #801d1d;
+      border-radius: 20px;
+      padding: 2px;
+      cursor: pointer;
+      width: 60px;
+      position: relative;
+    }
+
+    .toggle-switch.active {
+      border-color: #ffb703;
+      background: rgba(255, 183, 3, 0.2);
+    }
+
+    .toggle-circle {
+      width: 24px;
+      height: 24px;
+      background: #d8d8d8;
+      border-radius: 50%;
+      transition: left 0.3s ease-in-out;
+      position: absolute;
+      left: 2px;
+    }
+
+    .toggle-switch.active .toggle-circle {
+      left: 34px;
+      background: #ffb703;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .modal-buttons .menu-btn {
+      flex: 1;
+    }
+
+    .controls-info {
+      background: rgba(30, 10, 10, 0.5);
+      border-left: 3px solid #ffb703;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      color: #d8d8d8;
+      font-size: 0.9rem;
+      text-align: left;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .controls-info p {
+      margin: 0.5rem 0;
+    }
+
+    .credits-list {
+      color: #d8d8d8;
+      font-size: 0.95rem;
+      text-align: left;
+      line-height: 1.8;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    .credits-list strong {
+      color: #ffb703;
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .keybindings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .keybinding-item {
+      background: rgba(30, 10, 10, 0.5);
+      padding: 0.8rem;
+      border-radius: 4px;
+      border-left: 2px solid #e63946;
+    }
+
+    .keybinding-item .key {
+      color: #ffb703;
+      font-weight: bold;
+      font-family: monospace;
+    }
+
+    .keybinding-item .action {
+      color: #d8d8d8;
+      font-size: 0.85rem;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #e63946;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .close-btn:hover {
+      background: #ffb703;
+      color: #0a0202;
+      transform: scale(1.1);
+    }
+
+    .modal-content {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu-wrapper">
+    <div class="menu-container">
+      <h1 class="game-title">SURVIVING THIS HELL<span class="subtitle">ISN'T SIMPLE</span></h1>
+      <div class="version">v1.0.0 BETA</div>
+
+      <div class="difficulty-selector">
+        <button class="difficulty-btn active" onclick="setDifficulty('easy', this)">EASY</button>
+        <button class="difficulty-btn" onclick="setDifficulty('normal', this)">NORMAL</button>
+        <button class="difficulty-btn" onclick="setDifficulty('hard', this)">HARD</button>
+        <button class="difficulty-btn" onclick="setDifficulty('hell', this)">HELL MODE</button>
+      </div>
+
+      <div class="button-group full-width">
+        <button class="menu-btn primary" onclick="handleMenu('start')">START GAME</button>
+        <button class="menu-btn" onclick="handleMenu('load')">LOAD GAME</button>
+      </div>
+
+      <div class="button-group full-width">
+        <button class="menu-btn" onclick="handleMenu('new')">NEW GAME</button>
+        <button class="menu-btn" onclick="handleMenu('continue')">CONTINUE</button>
+      </div>
+
+      <div class="secondary-buttons">
+        <button class="menu-btn secondary" onclick="openModal('settings')">⚙ SETTINGS</button>
+        <button class="menu-btn secondary" onclick="openModal('controls')">⌨ CONTROLS</button>
+        <button class="menu-btn secondary" onclick="openModal('credits')">✦ CREDITS</button>
+      </div>
+
+      <div class="secondary-buttons">
+        <button class="menu-btn secondary" onclick="openModal('about')">ℹ ABOUT</button>
+        <button class="menu-btn secondary" onclick="handleMenu('quit')" style="grid-column: span 2;">EXIT GAME</button>
+      </div>
+    </div>
   </div>
-</div>
-body {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: radial-gradient(circle at center, #2a0808 0%, #0a0202 100%);
-  font-family: 'Impact', 'Arial Black', sans-serif;
-}
 
-.menu-container {
-  text-align: center;
-  background: rgba(15, 5, 5, 0.75);
-  padding: 3.5rem 4rem;
-  border-radius: 4px;
-  border: 1px solid rgba(255, 60, 0, 0.2);
-  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), inset 0 0 15px rgba(255, 50, 0, 0.1);
-}
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <h2 class="modal-title">SETTINGS</h2>
+      
+      <div class="settings-option">
+        <label>Master Volume</label>
+        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;">
+      </div>
 
-.game-title {
-  color: #e63946;
-  font-size: 2.8rem;
-  margin-bottom: 2.5rem;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  text-shadow: 0 0 15px rgba(230, 57, 70, 0.6), 2px 2px 0px #000;
-  line-height: 1.1;
-}
+      <div class="settings-option">
+        <label>Music Volume</label>
+        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;">
+      </div>
 
-.subtitle {
-  display: block;
-  font-size: 1.6rem;
-  color: #ffb703;
-  letter-spacing: 6px;
-  margin-top: 0.5rem;
-  text-shadow: 0 0 10px rgba(255, 183, 3, 0.4);
-}
+      <div class="settings-option">
+        <label>SFX Volume</label>
+        <input type="range" min="0" max="100" value="80" style="width: 100%; cursor: pointer;">
+      </div>
 
-.button-group {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
+      <div class="settings-option">
+        <label>Enable Screen Shake</label>
+        <div class="toggle-switch active" onclick="toggleSetting(this)">
+          <div class="toggle-circle"></div>
+        </div>
+      </div>
 
-.menu-btn {
-  background: rgba(20, 10, 10, 0.8);
-  color: #d8d8d8;
-  border: 2px solid #801d1d;
-  padding: 1rem 2.5rem;
-  font-size: 1.1rem;
-  font-family: 'Segoe UI', Tahoma, sans-serif;
-  font-weight: 700;
-  letter-spacing: 3px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  text-transform: uppercase;
-}
+      <div class="settings-option">
+        <label>Enable Blood Effects</label>
+        <div class="toggle-switch active" onclick="toggleSetting(this)">
+          <div class="toggle-circle"></div>
+        </div>
+      </div>
 
-.menu-btn:hover {
-  background: #ffb703;
-  color: #0a0202;
-  border-color: #ffb703;
-  box-shadow: 0 0 25px rgba(255, 183, 3, 0.6);
-  transform: scale(1.03);
-}
+      <div class="settings-option">
+        <label>Subtitles</label>
+        <div class="toggle-switch" onclick="toggleSetting(this)">
+          <div class="toggle-circle"></div>
+        </div>
+      </div>
 
-.menu-btn:active {
-  transform: scale(0.98);
-}
-function handleMenu(action) {
-  switch (action) {
-    case 'start':
-      console.log("Entering the hellscape...");
-      break;
-    case 'load':
-      console.log("Loading save point...");
-      break;
-    case 'new':
-      console.log("Starting a new nightmare...");
-      break;
-  }
-}
+      <div class="modal-buttons">
+        <button class="menu-btn" onclick="closeModal()">BACK</button>
+        <button class="menu-btn primary" onclick="saveSettings()">SAVE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Modal -->
+  <div class="settings-modal" id="controlsModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <h2 class="modal-title">CONTROLS</h2>
+      
+      <div class="keybindings-grid">
+        <div class="keybinding-item">
+          <div class="key">W / ↑</div>
+          <div class="action">Move Up</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">A / ←</div>
+          <div class="action">Move Left</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">S / ↓</div>
+          <div class="action">Move Down</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">D / →</div>
+          <div class="action">Move Right</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">SPACE</div>
+          <div class="action">Jump / Interact</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">E</div>
+          <div class="action">Grab / Use</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">Q</div>
+          <div class="action">Inventory</div>
+        </div>
+        <div class="keybinding-item">
+          <div class="key">ESC</div>
+          <div class="action">Pause Menu</div>
+        </div>
+      </div>
+
+      <div class="controls-info">
+        <p><strong>⚡ QUICK TIPS:</strong></p>
+        <p>• Hold SHIFT to sprint</p>
+        <p>• Double-tap direction to dodge</p>
+        <p>• Right-click to attack</p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="menu-btn primary" style="grid-column: span 2;" onclick="closeModal()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credits Modal -->
+  <div class="settings-modal" id="creditsModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <h2 class="modal-title">CREDITS</h2>
+      
+      <div class="credits-list">
+        <strong>🎮 GAME DESIGN</strong>
+        Kerron Richards
+
+        <strong>🎨 ART & ANIMATION</strong>
+        Kerron Richards
+
+        <strong>🎵 MUSIC & SOUND</strong>
+        Original Soundtrack
+
+        <strong>💻 PROGRAMMING</strong>
+        Kerron Richards
+
+        <strong>📝 STORY & WRITING</strong>
+        Kerron Richards
+
+        <strong>🙏 SPECIAL THANKS</strong>
+        All players brave enough to enter this hellscape.
+      </div>
+
+      <div class="modal-buttons">
+        <button class="menu-btn primary" style="grid-column: span 2;" onclick="closeModal()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div class="settings-modal" id="aboutModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+      <h2 class="modal-title">ABOUT</h2>
+      
+      <div class="controls-info">
+        <p><strong>SURVIVING THIS HELL</strong></p>
+        <p style="margin: 1rem 0; line-height: 1.6;">A dark and intense survival experience that tests your will to survive. Navigate through treacherous environments, manage limited resources, and confront the horrors that stand between you and freedom.</p>
+        
+        <p><strong>Version:</strong> 1.0.0 BETA</p>
+        <p><strong>Platform:</strong> Web-Based</p>
+        <p><strong>Genre:</strong> Survival Horror / Action</p>
+        
+        <p style="margin-top: 1.5rem; font-size: 0.85rem; opacity: 0.8;">
+          ⚠ WARNING: This game contains mature themes and intense imagery.
+        </p>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="menu-btn primary" style="grid-column: span 2;" onclick="closeModal()">CLOSE</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentDifficulty = 'easy';
+    let gameSettings = {
+      masterVolume: 70,
+      musicVolume: 70,
+      sfxVolume: 80,
+      screenShake: true,
+      bloodEffects: true,
+      subtitles: false
+    };
+
+    function handleMenu(action) {
+      switch (action) {
+        case 'start':
+          console.log("Entering the hellscape...");
+          playSound('start');
+          // TODO: Load game scene
+          break;
+        case 'load':
+          console.log("Loading save point...");
+          playSound('click');
+          // TODO: Open load game screen
+          break;
+        case 'new':
+          console.log("Starting a new nightmare...");
+          playSound('click');
+          // TODO: Create new game
+          break;
+        case 'continue':
+          console.log("Resuming your torment...");
+          playSound('click');
+          // TODO: Continue last game
+          break;
+        case 'quit':
+          console.log("Escaping while you still can...");
+          playSound('quit');
+          // TODO: Proper shutdown logic
+          break;
+      }
+    }
+
+    function setDifficulty(difficulty, element) {
+      currentDifficulty = difficulty;
+      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+      console.log(`Difficulty set to: ${difficulty.toUpperCase()}`);
+      playSound('click');
+    }
+
+    function openModal(modalType) {
+      const modals = {
+        'settings': 'settingsModal',
+        'controls': 'controlsModal',
+        'credits': 'creditsModal',
+        'about': 'aboutModal'
+      };
+      
+      document.getElementById(modals[modalType]).classList.add('active');
+      playSound('click');
+    }
+
+    function closeModal() {
+      document.querySelectorAll('.settings-modal').forEach(modal => modal.classList.remove('active'));
+      playSound('click');
+    }
+
+    function toggleSetting(element) {
+      element.classList.toggle('active');
+      playSound('click');
+    }
+
+    function saveSettings() {
+      console.log("Settings saved:", gameSettings);
+      playSound('success');
+      setTimeout(() => closeModal(), 300);
+    }
+
+    function playSound(type) {
+      // TODO: Implement actual sound playback
+      console.log(`Playing sound: ${type}`);
+    }
+
+    // Close modals when clicking outside
+    document.querySelectorAll('.settings-modal').forEach(modal => {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
+    });
+  </script>
+</body>
+</html>
