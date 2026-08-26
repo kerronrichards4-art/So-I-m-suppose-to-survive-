@@ -1,4 +1,9 @@
-<!doctype html>
+// Wire Start button
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  document.getElementById('startBtn').style.display = 'none';
+  document.getElementById('game').style.display = 'block';
+  engine.play_node('act1_morning');
+});<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
