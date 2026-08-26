@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>So I'm Suppose to Survive — Playable</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header>
+    <h1>So I'm Suppose to Survive — Playable Prototype</h1>
+    <div class="controls">
+      <label>Difficulty:
+        <select id="difficulty">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+      <label>Persona:
+        <select id="persona">
+          <option value="neutral">Narrator (Neutral)</option>
+          <option value="nicole">Nicole (Ice Queen)</option>
+          <option value="wendy">Wendy/Jessica (Heroines)</option>
+          <option value="ethan">Ethan (Rival)</option>
+        </select>
+      </label>
+      <button id="restartBtn">Restart</button>
+      <button id="autoBtn">Run Automated Playstyles</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="scene">
+      <div id="sceneText" class="scene-text">Welcome — select difficulty and persona, then click Restart to begin.</div>
+
+      <div class="player-input">
+        <textarea id="playerReply" placeholder="Type your reply here (free-form) or click a choice..." rows="3"></textarea>
+        <div class="input-actions">
+          <button id="suggestBtn">Suggest Options</button>
+          <button id="submitReply">Submit Reply</button>
+        </div>
+      </div>
+
+      <div id="choices" class="choices"></div>
+    </section>
+
+    <aside class="state">
+      <h3>State Panel</h3>
+      <div id="stats"></div>
+      <h4>Derived</h4>
+      <div id="derived"></div>
+      <h4>Inventory</h4>
+      <div id="inventory"></div>
+      <h4>Flags</h4>
+      <div id="flags"></div>
+    </aside>
+  </main>
+
+  <section class="log">
+    <h3>Butterfly / Persona Log</h3>
+    <div id="logContent"></div>
+  </section>
+
+  <footer>
+    <small>Prototype — deterministic, auditable rules. Files in /simulations/ on branch feature/playable-web.</small>
+  </footer>
+
+  <script src="./game.js"></script>
+</body>
+</html>
