@@ -1,0 +1,212 @@
+Here is a complete game narrative flowchart mapped out into distinct choice paths based on the storyline and mechanics from your screenshots.
+🎮 Story Overview & Core Mechanics
+ * Main Character: Alex Yardley (Transmigrated / System User)
+ * Objective: Avoid total plot erasure by navigating encounters with the original novel's "hero" Ethan Knight, avoiding fatal flags with heroines (Nicole Rivers, Wendy Taylor, Jessica Snow), and completing Villain System Quests.
+ * Win Condition: Complete system missions, retain assets, and survive to reality.
+ * Loss Condition: Total system erasure (Game Over).
+🗺️ Branching Choice Map
+ACT I: The Morning After & The Ice Queen's Offer
+> Setup: Alex wakes up after spending a fateful night with Nicole Rivers. The Villain System activates, granting martial arts rewards (Dragon Phoenix Rebirth Art) and issuing a mission to navigate his relationship with Nicole.
+> 
+📍 Choice 1: How do you handle Nicole Rivers pushing for an engagement?
+ * Option A: Accept the Engagement (Canon / Strategic Path)
+   * Outcome: Nicole locks Alex into her family's protection circle. Her manipulative nature pulls him into the "eye of the storm," but her family influence provides a shield against initial attacks from Ethan Knight.
+   * System Reward: Unlocks early martial arts training & Absolute Defense Cards.
+   * Unlocks Path: Path 1 — Shadow Strategist
+ * Option B: Attempt to Flee & Refuse Nicole (Rejection Path)
+   * Outcome: Nicole uses her family's status and evidence of their night together to sabotage Alex's public reputation. Without her protection, Ethan Knight targets Alex immediately.
+   * System Warning: High risk of early plot erasure.
+   * Unlocks Path: Path 2 — Lone Fugitive
+ACT II: Distancing the Heroines (Wendy Taylor & Jessica Snow)
+> Setup: Ethan Knight begins attracting key heroines. Alex receives a system quest requiring him to interact with or avoid these encounters without provoking Ethan.
+> 
+📍 Choice 2: You encounter Wendy Taylor & Jessica Snow in distress. How do you react?
+ * Option A: Intervene using System Skills (Heroic Villain)
+   * Outcome: Alex uses his upgraded martial arts/medical skills to save them. The heroines become intrigued by Alex instead of Ethan, altering the novel’s plot lines. However, Ethan's hatred toward Alex intensifies drastically.
+   * Consequence: Ethan triggers an early confrontation.
+ * Option B: Ignore them and let Ethan Knight save them (Coward / Stealth Path)
+   * Outcome: The original plot stays on track. Ethan gains political backing from the heroines, making him much stronger during the late-game events. Alex saves system energy for defense cards.
+ACT III: The Investment Gala Climax
+> Setup: The story climaxes at a high-stakes investment gala where Ethan Knight is destined to gain massive power and wealth.
+> 
+📍 Choice 3: What strategy do you adopt at the Investment Gala?
+ * Option A: Dress as a "Clown" & Disrupt via Auction (Canon Strategic Play)
+   * Outcome: Alex minimizes direct physical threat by playing the fool, but uses system resources to outbid and bankrupt Ethan during the high-stakes auction battle.
+   * Climax Result: Ethan's rise to power is completely crippled.
+ * Option B: Direct Martial Confrontation (Aggressive Play)
+   * Outcome: Alex relies heavily on his Dragon Phoenix Rebirth Art and Absolute Defense Cards to fight Ethan's forces head-on in public.
+   * Climax Result: High risk / high reward—can lead to total dominance or immediate System Fail/Erasure if defense cards run out.
+🔚 Story Endings Matrix
+| Ending Title | Path Taken | Final Outcome |
+|---|---|---|
+| Ending 1: Absolute Villain Supremacy (True Ending) | Accept Nicole \rightarrow Intervene for Heroines \rightarrow Disrupt Gala via Auction | Alex completely dismantles Ethan Knight's protagonist luck. Nicole and Alex establish a powerful duo, completing all System missions and returning to reality with full assets. |
+| Ending 2: Puppet of the Ice Queen | Accept Nicole \rightarrow Ignore Heroines \rightarrow Disrupt Gala via Auction | Alex survives and defeats Ethan, but Nicole retains total control over his personal and professional life. |
+| Ending 3: Erased by the Plot (Game Over) | Refuse Nicole \rightarrow Direct Confrontation at Gala | Lacking both Nicole's backing and strategic planning, Ethan overpowers Alex. The System triggers Total Erasure. |
+| Ending 4: Solitary Rogue | Refuse Nicole \rightarrow Intervene for Heroines \rightarrow Direct Confrontation | Alex survives as an outlaw, hunted by both Ethan's faction and Nicole's family, constantly living on the edge using System defense cards. |
+class StoryState:
+    def __init__(self):
+        # Butterfly Effect Tracking
+        self.stats = {
+            "nicole_trust": 50,
+            "ethan_hostility": 10,
+            "heroine_favor": 0,
+            "system_points": 100
+        }
+        self.flags = {
+            "engaged_to_nicole": False,
+            "saved_heroines": False,
+            "gala_clown_outfit": False,
+            "ethan_bankrupted": False
+        }
+        self.inventory = []
+
+    def modify_stat(self, stat_name, value):
+        if stat_name in self.stats:
+            self.stats[stat_name] = max(0, min(100, self.stats[stat_name] + value))
+            print(f"  [Stat Change] {stat_name.upper()}: {self.stats[stat_name]} ({'+' if value > 0 else ''}{value})")
+
+    def set_flag(self, flag_name, status=True):
+        self.flags[flag_name] = status
+        print(f"  [Butterfly Effect Triggered] Flag '{flag_name}' set to {status}!")
+
+
+class NarrativeNode:
+    def __init__(self, node_id, text, choices):
+        self.node_id = node_id
+        self.text = text
+        self.choices = choices
+
+
+class StoryEngine:
+    def __init__(self):
+        self.state = StoryState()
+        self.nodes = {}
+
+    def add_node(self, node):
+        self.nodes[node.node_id] = node
+
+    def play_node(self, node_id):
+        node = self.nodes.get(node_id)
+        if not node:
+            print("End of narrative path reached.")
+            return
+
+        print("\n" + "=" * 60)
+        print(f"STORY SCENE: {node.text}")
+        print("=" * 60)
+
+        # Dynamic Butterfly Effect Warnings based on State
+        if self.state.stats["ethan_hostility"] >= 80:
+            print("\n⚠️ [BUTTERFLY EFFECT WARNING]: Ethan Knight is actively hunting you!")
+
+        if not node.choices:
+            print("\n[SCENE END] Processing Final Narrative State...")
+            self.evaluate_ending()
+            return
+
+        print("\nWhat will you do?")
+        for idx, choice in enumerate(node.choices, 1):
+            print(f"[{idx}] {choice['text']}")
+
+        # Input handling
+        while True:
+            try:
+                selection = int(input("\nSelect choice #: ")) - 1
+                if 0 <= selection < len(node.choices):
+                    chosen = node.choices[selection]
+                    # Execute choice effects
+                    if "effect" in chosen:
+                        chosen["effect"](self.state)
+                    # Transition to next node
+                    self.play_node(chosen["next_node"])
+                    break
+                print("Invalid choice. Try again.")
+            except ValueError:
+                print("Please enter a valid number.")
+
+    def evaluate_ending(self):
+        print("\n--- FINAL OUTCOME ---")
+        if self.state.flags.get("ethan_bankrupted") and self.state.flags.get("engaged_to_nicole"):
+            print("🏆 TRUE ENDING: Absolute Villain Supremacy! You neutralized Ethan Knight and built a power dynamic with Nicole.")
+        elif self.state.flags.get("ethan_bankrupted"):
+            print("🥈 ENDING: Solitary Rogue. You bankrupted Ethan, but without Nicole's backing, you live on the run.")
+        else:
+            print("☠️ GAME OVER: Total Plot Erasure! Ethan Knight overpowers you, and the Villain System terminates your existence.")
+
+
+# ==========================================
+# STORY NODES CONFIGURATION
+# ==========================================
+
+engine = StoryEngine()
+
+# --- ACT 1: Morning After ---
+def accept_engagement_effect(state):
+    state.set_flag("engaged_to_nicole", True)
+    state.modify_stat("nicole_trust", +30)
+    state.modify_stat("system_points", +50)
+    state.inventory.append("Absolute Defense Card")
+
+def refuse_engagement_effect(state):
+    state.set_flag("engaged_to_nicole", False)
+    state.modify_stat("nicole_trust", -40)
+    state.modify_stat("ethan_hostility", +30)
+
+engine.add_node(NarrativeNode(
+    "act1_morning",
+    "You wake up next to Nicole Rivers. The Villain System alerts you that she is pushing for an engagement to tie your families together.",
+    [
+        {"text": "Accept the engagement and use her family as a shield.", "next_node": "act2_heroines", "effect": accept_engagement_effect},
+        {"text": "Refuse and attempt to escape her grasp.", "next_node": "act2_heroines", "effect": refuse_engagement_effect}
+    ]
+))
+
+# --- ACT 2: Heroines Event ---
+def save_heroines_effect(state):
+    state.set_flag("saved_heroines", True)
+    state.modify_stat("heroine_favor", +40)
+    state.modify_stat("ethan_hostility", +40)
+
+def ignore_heroines_effect(state):
+    state.set_flag("saved_heroines", False)
+    state.modify_stat("system_points", +20)
+
+engine.add_node(NarrativeNode(
+    "act2_heroines",
+    "You spot Wendy Taylor and Jessica Snow trapped in a dangerous situation. Ethan Knight is en route to rescue them.",
+    [
+        {"text": "Intervene using System Martial Arts to rescue them first.", "next_node": "act3_gala", "effect": save_heroines_effect},
+        {"text": "Ignore them and let Ethan Knight take the spotlight.", "next_node": "act3_gala", "effect": ignore_heroines_effect}
+    ]
+))
+
+# --- ACT 3: Gala Climax ---
+def auction_clown_effect(state):
+    state.set_flag("gala_clown_outfit", True)
+    # Butterfly effect check: Having Nicole's backing or high system points ensures success
+    if state.flags["engaged_to_nicole"] or state.stats["system_points"] >= 120:
+        state.set_flag("ethan_bankrupted", True)
+    else:
+        state.set_flag("ethan_bankrupted", False)
+
+def direct_fight_effect(state):
+    # High hostility leads to defeat unless defense cards exist
+    if "Absolute Defense Card" in state.inventory:
+        state.set_flag("ethan_bankrupted", True)
+    else:
+        state.set_flag("ethan_bankrupted", False)
+
+engine.add_node(NarrativeNode(
+    "act3_gala",
+    "It's the Investment Gala. Ethan Knight is preparing to make a bid that will give him total control of the city's economy.",
+    [
+        {"text": "Dress as a 'clown' to reduce threat level and disrupt the auction.", "next_node": "ending", "effect": auction_clown_effect},
+        {"text": "Confront Ethan directly in martial combat.", "next_node": "ending", "effect": direct_fight_effect}
+    ]
+))
+
+engine.add_node(NarrativeNode("ending", "", []))
+
+# Run Game
+if __name__ == "__main__":
+    engine.play_node("act1_morning")
