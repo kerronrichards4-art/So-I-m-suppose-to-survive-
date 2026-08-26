@@ -8,15 +8,28 @@
     body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial; padding: 24px; background:#111; color:#eee; }
     .center { max-width:900px; margin:0 auto; }
     header { text-align:center; margin-bottom:18px }
-    button { background:#0ea5a4; border:none; color:#012; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600 }
+    button { background:#0ea5a4; border:none; color:#012; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; transition:all 0.2s ease; }
+    button:hover { background:#06a39d; transform:translateY(-2px); box-shadow:0 4px 12px rgba(14,165,164,0.3); }
+    button:active { transform:translateY(0); }
     .muted { color:#aaa; }
     #game { display:none; margin-top:18px; }
-    #scene { background:#0f172a; padding:18px; border-radius:8px; margin-bottom:12px; min-height:80px }
-    .choices button { display:block; margin:8px 0; width:100%; text-align:left }
-    .status { background:#071024; padding:12px; border-radius:8px; margin-top:12px; font-size:14px }
-    .big { font-size:18px; font-weight:700 }
-    footer { margin-top:18px; color:#888; font-size:13px }
+    #progress { background:#1a1a2e; padding:12px; border-radius:6px; margin-bottom:12px; font-size:13px; color:#0ea5a4; font-weight:600; }
+    #scene { background:#0f172a; padding:18px; border-radius:8px; margin-bottom:12px; min-height:80px; line-height:1.6; white-space:pre-wrap; word-wrap:break-word; }
+    .choices { margin-bottom:12px; }
+    .choices button { display:block; margin:8px 0; width:100%; text-align:left; padding:12px 16px; }
+    .status { background:#071024; padding:12px; border-radius:8px; margin-top:12px; font-size:13px; }
+    .big { font-size:16px; font-weight:700; margin-top:12px; color:#0ea5a4; }
+    .big:first-child { margin-top:0; }
+    .stat-row { padding:4px 0; display:flex; justify-content:space-between; }
+    .stat-label { color:#aaa; }
+    .stat-value { color:#0ea5a4; font-weight:600; }
+    footer { margin-top:18px; color:#888; font-size:13px; }
     .hidden { display:none }
+    #endingArea { margin-top:18px; padding:18px; border-radius:8px; background:#1a1a2e; border-left:4px solid #0ea5a4; }
+    #endingArea.true-ending { border-left-color:#ffd700; background:rgba(255,215,0,0.05); }
+    #endingArea.good-ending { border-left-color:#90ee90; background:rgba(144,238,144,0.05); }
+    #endingArea.bad-ending { border-left-color:#ff6b6b; background:rgba(255,107,107,0.05); }
+    #endingArea .ending-text { font-size:15px; line-height:1.6; margin-bottom:12px; }
   </style>
 </head>
 <body>
@@ -28,23 +41,24 @@
     </header>
 
     <main id="game">
+      <div id="progress"></div>
       <div id="scene"></div>
       <div class="choices" id="choices"></div>
 
       <div class="status" id="status">
         <div class="big">Stats</div>
         <div id="statsArea"></div>
-        <div class="big" style="margin-top:8px">Flags</div>
+        <div class="big">Flags</div>
         <div id="flagsArea"></div>
-        <div class="big" style="margin-top:8px">Inventory</div>
+        <div class="big">Inventory</div>
         <div id="invArea"></div>
       </div>
 
-      <div id="endingArea" class="hidden" style="margin-top:12px"></div>
+      <div id="endingArea" class="hidden"></div>
     </main>
 
     <footer>
-      Converted engine — decisions update state and lead to different endings. If you want UI changes or extra saves, tell me what to add next.
+      Converted engine — decisions update state and lead to different endings. Make choices wisely.
     </footer>
   </div>
 
@@ -69,24 +83,29 @@
       }
       modify_stat(name, value){
         if(this.stats.hasOwnProperty(name)){
-          this.stats[name] = Math.max(0, Math.min(100, this.stats[name] + value));
-          // console.log(`[Stat Change] ${name.toUpperCase()}: ${this.stats[name]} (${value>0?'+':''}${value})`);
+          const max = name === 'system_points' ? 150 : 100;
+          this.stats[name] = Math.max(0, Math.min(max, this.stats[name] + value));
         }
       }
       set_flag(name, status=true){
         this.flags[name] = status;
-        // console.log(`[Flag] ${name} = ${status}`);
       }
     }
 
     class NarrativeNode {
-      constructor(id, text, choices){ this.node_id = id; this.text = text; this.choices = choices; }
+      constructor(id, text, choices, act = null){ 
+        this.node_id = id; 
+        this.text = text; 
+        this.choices = choices;
+        this.act = act;
+      }
     }
 
     class StoryEngine {
       constructor(){
         this.state = new StoryState();
         this.nodes = {};
+        this.current_act = 0;
       }
       add_node(node){ this.nodes[node.node_id] = node; }
 
@@ -97,13 +116,16 @@
           return;
         }
 
-        // Show warning
+        // Update current act
+        if(node.act) this.current_act = node.act;
+        this.updateProgress();
+
+        // Show warning if Ethan hostility is high
+        let sceneText = node.text;
         if(this.state.stats.ethan_hostility >= 80){
-          // append warning to text
-          this.showScene('\n⚠️ [BUTTERFLY EFFECT WARNING]: Ethan Knight is actively hunting you!\n' + node.text);
-        } else {
-          this.showScene(node.text);
+          sceneText = '⚠️ [BUTTERFLY EFFECT WARNING]: Ethan Knight is actively hunting you!\n' + node.text;
         }
+        this.showScene(sceneText);
 
         // update status panel
         this.renderStatus();
@@ -127,42 +149,63 @@
         });
       }
 
+      updateProgress(){
+        const acts = ['Act 1: Morning', 'Act 2: Crisis', 'Act 3: Gala', 'Finale'];
+        document.getElementById('progress').textContent = `📍 ${acts[this.current_act] || 'Epilogue'}`;
+      }
+
       showScene(text){
         const scene = document.getElementById('scene');
         scene.textContent = text;
       }
 
       renderStatus(){
-        document.getElementById('statsArea').textContent =
-          Object.entries(this.state.stats).map(([k,v])=>`${k}: ${v}`).join(' | ');
-        document.getElementById('flagsArea').textContent =
-          Object.entries(this.state.flags).map(([k,v])=>`${k}: ${v}`).join(' | ');
-        document.getElementById('invArea').textContent = this.state.inventory.join(', ') || '(empty)';
+        const statsArea = document.getElementById('statsArea');
+        statsArea.innerHTML = Object.entries(this.state.stats).map(([k,v])=>
+          `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v}</span></div>`
+        ).join('');
+        
+        const flagsArea = document.getElementById('flagsArea');
+        flagsArea.innerHTML = Object.entries(this.state.flags).map(([k,v])=>
+          `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v ? '✓' : '✗'}</span></div>`
+        ).join('');
+        
+        document.getElementById('invArea').textContent = this.state.inventory.length > 0 
+          ? this.state.inventory.join(', ') 
+          : '(empty)';
       }
 
       evaluate_ending(){
         const area = document.getElementById('endingArea');
-        area.classList.remove('hidden');
+        area.classList.remove('hidden', 'true-ending', 'good-ending', 'bad-ending');
         const choicesDiv = document.getElementById('choices');
         choicesDiv.innerHTML = '';
 
-        let text = '\n--- FINAL OUTCOME ---\n';
+        let text = '';
+        let className = 'bad-ending';
+
         if(this.state.flags.ethan_bankrupted && this.state.flags.engaged_to_nicole){
-          text += '🏆 TRUE ENDING: Absolute Villain Supremacy! You neutralized Ethan Knight and built a power dynamic with Nicole.';
+          text = '🏆 TRUE ENDING: Absolute Villain Supremacy\n\nYou have neutralized Ethan Knight and built an unshakeable power dynamic with Nicole Rivers. The city bows before you. The Villain System declares victory.';
+          className = 'true-ending';
         } else if(this.state.flags.ethan_bankrupted){
-          text += '🥈 ENDING: Solitary Rogue. You bankrupted Ethan, but without Nicole\'s backing, you live on the run.';
+          text = '🥈 ENDING: Solitary Rogue\n\nYou bankrupted Ethan and survived the gala, but without Nicole\'s backing, you live perpetually on the run. Victory tastes like exile.';
+          className = 'good-ending';
         } else {
-          text += '☠️ GAME OVER: Total Plot Erasure! Ethan Knight overpowers you, and the Villain System terminates your existence.';
+          text = '☠️ GAME OVER: Total Plot Erasure\n\nEthan Knight overpowers you. The Villain System terminates your existence. Your story ends here.';
+          className = 'bad-ending';
         }
 
-        area.textContent = text;
+        area.classList.add(className);
+        const endingText = document.createElement('div');
+        endingText.className = 'ending-text';
+        endingText.textContent = text;
+        area.appendChild(endingText);
 
         // Add restart button
         const restart = document.createElement('button');
         restart.textContent = 'Play Again';
-        restart.style.marginTop = '12px';
         restart.addEventListener('click', ()=>{ location.reload(); });
-        area.appendChild(document.createElement('div')).appendChild(restart);
+        area.appendChild(restart);
       }
     }
 
@@ -215,7 +258,8 @@
       [
         { text: 'Accept the engagement and use her family as a shield.', next_node: 'act2_heroines', effect: accept_engagement_effect },
         { text: 'Refuse and attempt to escape her grasp.', next_node: 'act2_heroines', effect: refuse_engagement_effect }
-      ]
+      ],
+      0
     ));
 
     engine.add_node(new NarrativeNode('act2_heroines',
@@ -223,7 +267,8 @@
       [
         { text: 'Intervene using System Martial Arts to rescue them first.', next_node: 'act3_gala', effect: save_heroines_effect },
         { text: 'Ignore them and let Ethan Knight take the spotlight.', next_node: 'act3_gala', effect: ignore_heroines_effect }
-      ]
+      ],
+      1
     ));
 
     engine.add_node(new NarrativeNode('act3_gala',
@@ -231,10 +276,11 @@
       [
         { text: "Dress as a 'clown' to reduce threat level and disrupt the auction.", next_node: 'ending', effect: auction_clown_effect },
         { text: 'Confront Ethan directly in martial combat.', next_node: 'ending', effect: direct_fight_effect }
-      ]
+      ],
+      2
     ));
 
-    engine.add_node(new NarrativeNode('ending', '', []));
+    engine.add_node(new NarrativeNode('ending', '', [], 3));
 
     // Wire Start button
     document.getElementById('startBtn').addEventListener('click', ()=>{
