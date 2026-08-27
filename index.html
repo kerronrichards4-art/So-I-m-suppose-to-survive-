@@ -438,14 +438,20 @@
         <button class="difficulty-btn" onclick="setDifficulty('hell', this)">HELL MODE</button>
       </div>
 
-      <div class="button-group full-width">
-        <button class="menu-btn primary" onclick="handleMenu('start')">START GAME</button>
-        <button class="menu-btn" onclick="handleMenu('load')">LOAD GAME</button>
+      <!-- Primary actions wired directly to game functions -->
+      <div class="button-group">
+        <button class="menu-btn primary" onclick="startGame()">START GAME</button>
+        <button class="menu-btn" onclick="loadGame()">LOAD GAME</button>
       </div>
 
+      <!-- Save button (saves current session to localStorage) -->
       <div class="button-group full-width">
-        <button class="menu-btn" onclick="handleMenu('new')">NEW GAME</button>
-        <button class="menu-btn" onclick="handleMenu('continue')">CONTINUE</button>
+        <button class="menu-btn" onclick="saveGame()">SAVE GAME</button>
+      </div>
+
+      <div class="button-group">
+        <button class="menu-btn" onclick="newGame()">NEW GAME</button>
+        <button class="menu-btn" onclick="continueGame()">CONTINUE</button>
       </div>
 
       <div class="secondary-buttons">
@@ -456,7 +462,7 @@
 
       <div class="secondary-buttons">
         <button class="menu-btn secondary" onclick="openModal('about')">ℹ ABOUT</button>
-        <button class="menu-btn secondary" onclick="handleMenu('quit')" style="grid-column: span 2;">EXIT GAME</button>
+        <button class="menu-btn secondary" onclick="quitGame()" style="grid-column: span 2;">EXIT GAME</button>
       </div>
     </div>
   </div>
@@ -469,17 +475,17 @@
       
       <div class="settings-option">
         <label>Master Volume</label>
-        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;">
+        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;" id="masterVolume">
       </div>
 
       <div class="settings-option">
         <label>Music Volume</label>
-        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;">
+        <input type="range" min="0" max="100" value="70" style="width: 100%; cursor: pointer;" id="musicVolume">
       </div>
 
       <div class="settings-option">
         <label>SFX Volume</label>
-        <input type="range" min="0" max="100" value="80" style="width: 100%; cursor: pointer;">
+        <input type="range" min="0" max="100" value="80" style="width: 100%; cursor: pointer;" id="sfxVolume">
       </div>
 
       <div class="settings-option">
@@ -604,7 +610,7 @@
       
       <div class="controls-info">
         <p><strong>SURVIVING THIS HELL</strong></p>
-        <p style="margin: 1rem 0; line-height: 1.6;">A dark and intense survival experience that tests your will to survive. Navigate through treacherous environments, manage limited resources, and confront the horrors that stand between you and freedom.</p>
+        <p style="margin: 1rem 0; line-height: 1.6;">A dark and intense survival experience that tests your will to survive. Navigate through treacherous environments, manage limited resources, and co[...]</p>
         
         <p><strong>Version:</strong> 1.0.0 BETA</p>
         <p><strong>Platform:</strong> Web-Based</p>
@@ -622,6 +628,18 @@
   </div>
 
   <script>
+    // Basic in-memory game state — replace with your real game state object when integrating
+    let gameState = {
+      currentScene: 1,
+      isPaused: false,
+      timestamp: Date.now(),
+      // add more properties as needed: player stats, inventory, scene-specific variables, etc.
+      progress: {}
+    };
+
+    const SAVE_KEY = 'survive_save_v1';
+
+    // Existing settings object
     let currentDifficulty = 'easy';
     let gameSettings = {
       masterVolume: 70,
@@ -632,35 +650,113 @@
       subtitles: false
     };
 
-    function handleMenu(action) {
-      switch (action) {
-        case 'start':
-          console.log("Entering the hellscape...");
-          playSound('start');
-          // TODO: Load game scene
-          break;
-        case 'load':
-          console.log("Loading save point...");
-          playSound('click');
-          // TODO: Open load game screen
-          break;
-        case 'new':
-          console.log("Starting a new nightmare...");
-          playSound('click');
-          // TODO: Create new game
-          break;
-        case 'continue':
-          console.log("Resuming your torment...");
-          playSound('click');
-          // TODO: Continue last game
-          break;
-        case 'quit':
-          console.log("Escaping while you still can...");
-          playSound('quit');
-          // TODO: Proper shutdown logic
-          break;
+    // ---------- Game control functions wired to menu buttons ----------
+    function startGame() {
+      // Start a fresh play session but DO NOT load saved data
+      gameState.currentScene = 1; // first scene
+      gameState.isPaused = false;
+      gameState.timestamp = Date.now();
+      console.log('Game started: scene', gameState.currentScene);
+      playSound('start');
+      // TODO: Replace with your real scene-loading logic
+      enterScene(gameState.currentScene);
+    }
+
+    function saveGame() {
+      // Persist the current in-memory gameState to localStorage
+      try {
+        gameState.timestamp = Date.now();
+        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+        console.log('Game saved:', gameState);
+        playSound('save');
+      } catch (err) {
+        console.error('Failed to save game:', err);
+        playSound('error');
       }
     }
+
+    function loadGame() {
+      // Load saved state from localStorage and apply it to the game
+      try {
+        const saved = localStorage.getItem(SAVE_KEY);
+        if (!saved) {
+          console.log('No save found.');
+          playSound('error');
+          return;
+        }
+        const parsed = JSON.parse(saved);
+        // Simple merge — replace entirely or merge depending on how your real game is structured
+        gameState = Object.assign({}, gameState, parsed);
+        console.log('Loaded save:', gameState);
+        playSound('load');
+        // TODO: Replace with actual scene restoring logic
+        enterScene(gameState.currentScene);
+      } catch (err) {
+        console.error('Failed to load save:', err);
+        playSound('error');
+      }
+    }
+
+    function newGame() {
+      // Reset progress and start from the first scene
+      gameState = {
+        currentScene: 1,
+        isPaused: false,
+        timestamp: Date.now(),
+        progress: {}
+      };
+      console.log('New game started: scene', gameState.currentScene);
+      playSound('click');
+      // Optionally clear saved progress — comment out if you want to keep saves
+      // localStorage.removeItem(SAVE_KEY);
+      enterScene(gameState.currentScene);
+    }
+
+    function continueGame() {
+      // Resume if the game was paused; otherwise inform user
+      if (gameState.isPaused) {
+        gameState.isPaused = false;
+        console.log('Game resumed at scene', gameState.currentScene);
+        playSound('click');
+        // TODO: Restore any paused timers, animations, or game loops
+        resumeScene();
+      } else {
+        console.log('No paused game to continue.');
+        playSound('error');
+      }
+    }
+
+    function quitGame() {
+      console.log('Exiting game...');
+      playSound('quit');
+      // TODO: implement real quit logic if needed
+      // For web builds you might navigate away or close overlays
+    }
+
+    // Placeholder helpers to simulate scene entry/resume
+    function enterScene(sceneNumber) {
+      console.log(`(placeholder) Entering scene ${sceneNumber}`);
+      // Example: set a page state, show the game canvas, hide menu, etc.
+      // Hide the menu container to simulate entering the game
+      document.querySelector('.menu-container').style.display = 'none';
+      // Ensure paused flag is false
+      gameState.isPaused = false;
+    }
+
+    function resumeScene() {
+      console.log('(placeholder) Resuming scene', gameState.currentScene);
+      // Example: re-enable game loop, hide menu overlays
+      document.querySelector('.menu-container').style.display = 'none';
+    }
+
+    function pauseGame() {
+      gameState.isPaused = true;
+      console.log('Game paused');
+      // Show menu overlay to allow Continue/SAVE/etc
+      document.querySelector('.menu-container').style.display = 'block';
+    }
+
+    // -----------------------------------------------------------------
 
     function setDifficulty(difficulty, element) {
       currentDifficulty = difficulty;
@@ -677,7 +773,6 @@
         'credits': 'creditsModal',
         'about': 'aboutModal'
       };
-      
       document.getElementById(modals[modalType]).classList.add('active');
       playSound('click');
     }
@@ -693,7 +788,11 @@
     }
 
     function saveSettings() {
-      console.log("Settings saved:", gameSettings);
+      // Update settings from inputs (basic example)
+      gameSettings.masterVolume = Number(document.getElementById('masterVolume').value || 70);
+      gameSettings.musicVolume = Number(document.getElementById('musicVolume').value || 70);
+      gameSettings.sfxVolume = Number(document.getElementById('sfxVolume').value || 80);
+      console.log('Settings saved:', gameSettings);
       playSound('success');
       setTimeout(() => closeModal(), 300);
     }
@@ -710,10 +809,33 @@
       });
     });
 
-    // Keyboard shortcuts
+    // Keyboard shortcuts: ESC closes modals, P toggles pause
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeModal();
+      if (e.key.toLowerCase() === 'p') {
+        // Toggle pause
+        if (gameState.isPaused) {
+          continueGame();
+        } else {
+          pauseGame();
+        }
+      }
     });
+
+    // On load, try to restore save into memory but do NOT automatically start the game
+    (function initialize() {
+      const saved = localStorage.getItem(SAVE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          // Keep the existing default structure and merge saved values
+          gameState = Object.assign({}, gameState, parsed);
+          console.log('Found existing save (not auto-loaded):', gameState);
+        } catch (err) {
+          console.warn('Failed to parse existing save on init:', err);
+        }
+      }
+    })();
   </script>
 </body>
 </html>
