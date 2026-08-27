@@ -1,3 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Surviving This Hell Isn't Simple - Playable</title>
+  <style>
+    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial; padding: 24px; background:#0f0505; color:#eee; }
+    .center { max-width:900px; margin:0 auto; }
+    header { text-align:center; margin-bottom:18px; }
+    h1 { color: #e63946; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .subtitle { color: #ffb703; font-size: 1.1rem; font-weight: bold; letter-spacing: 4px; display: block; margin-bottom: 12px; }
+    
+    .menu-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+    
+    button { background:#801d1d; border:1px solid #ff3c00; color:#fff; padding:10px 16px; border-radius:6px; cursor:pointer; font-weight:600; transition:all 0.2s ease; text-transform: uppercase; letter-spacing: 1px; }
+    button:hover { background:#ffb703; color:#0a0202; transform:translateY(-2px); box-shadow:0 4px 12px rgba(255, 183, 3, 0.4); }
+    button:active { transform:translateY(0); }
+    button:disabled { background: #333; border-color: #555; color: #777; cursor: not-allowed; transform: none; box-shadow: none; }
+    
+    .btn-save { background: #2e7d32; border-color: #4caf50; margin-bottom: 12px; }
+    .btn-save:hover { background: #4caf50; color: #fff; }
+
+    .muted { color:#aaa; }
+    #game { display:none; margin-top:18px; }
+    #progress { background:#1a0808; padding:12px; border-radius:6px; margin-bottom:12px; font-size:13px; color:#ffb703; font-weight:600; border: 1px solid rgba(255,183,3,0.2); }
+    #scene { background:#1a0a0a; padding:18px; border-radius:8px; margin-bottom:12px; min-height:80px; line-height:1.6; white-space:pre-wrap; word-wrap:break-word; border: 1px solid #331010; }
+    .choices { margin-bottom:12px; }
+    .choices button { display:block; margin:8px 0; width:100%; text-align:left; padding:12px 16px; }
+    .status { background:#120505; padding:12px; border-radius:8px; margin-top:12px; font-size:13px; border: 1px solid #2a0808; }
+    .big { font-size:16px; font-weight:700; margin-top:12px; color:#e63946; }
+    .big:first-child { margin-top:0; }
+    .stat-row { padding:4px 0; display:flex; justify-content:space-between; }
+    .stat-label { color:#aaa; }
+    .stat-value { color:#ffb703; font-weight:600; }
+    footer { margin-top:18px; color:#888; font-size:13px; text-align: center; }
+    .hidden { display:none }
+    #endingArea { margin-top:18px; padding:18px; border-radius:8px; background:#1a0808; border-left:4px solid #ffb703; }
+    #endingArea.true-ending { border-left-color:#ffd700; background:rgba(255,215,0,0.05); }
+    #endingArea.good-ending { border-left-color:#90ee90; background:rgba(144,238,144,0.05); }
+    #endingArea.bad-ending { border-left-color:#ff6b6b; background:rgba(255,107,107,0.05); }
+    #endingArea .ending-text { font-size:15px; line-height:1.6; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+  <div class="center">
+    <header>
+      <h1>Surviving This Hell</h1>
+      <span class="subtitle">Isn't Simple</span>
+      <p class="muted">A interactive narrative engine. Alter your fate against the plot.</p>
+      
+      <!-- New Game-Specific Action Controls -->
+      <div class="menu-controls">
+        <button id="startBtn">Survive The Hell</button>
+        <button id="loadBtn">Load Save-State</button>
+        <button id="newBtn">Restart Nightmare</button>
+        <button id="continueBtn" class="hidden">Resume Simulation</button>
+      </div>
+    </header>
+
+    <main id="game">
+      <button id="saveBtn" class="btn-save">💾 Save Current Progress</button>
+      <div id="progress"></div>
+      <div id="scene"></div>
+      <div class="choices" id="choices"></div>
+
+      <div class="status" id="status">
+        <div class="big">Villain System Stats</div>
+        <div id="statsArea"></div>
+        <div class="big">Plot Flags</div>
+        <div id="flagsArea"></div>
+        <div class="big">Inventory</div>
+        <div id="invArea"></div>
+      </div>
+
+      <div id="endingArea" class="hidden"></div>
+    </main>
+
+    <footer>
+      Villain System Active — Decisions modify variables and determine survival.
+    </footer>
+  </div>
+
+  <script>
+    class StoryState {
+      constructor(){
+        this.stats = {
+          nicole_trust: 50,
+          ethan_hostility: 10,
+          heroine_favor: 0,
+          system_points: 100
+        };
+        this.flags = {
+          engaged_to_nicole: false,
+          saved_heroines: false,
+          gala_clown_outfit: false,
+          ethan_bankrupted: false
+        };
+        this.inventory = [];
+      }
+      modify_stat(name, value){
+        if(this.stats.hasOwnProperty(name)){
+          const max = name === 'system_points' ? 150 : 100;
+          this.stats[name] = Math.max(0, Math.min(max, this.stats[name] + value));
+        }
+      }
+      set_flag(name, status=true){
+        this.flags[name] = status;
+      }
+    }
+
+    class NarrativeNode {
+      constructor(id, text, choices, act = null){ 
+        this.node_id = id; 
+        this.text = text; 
+        this.choices = choices;
+        this.act = act;
+      }
+    }
+
+    class StoryEngine {
+      constructor(){
+        this.state = new StoryState();
+        this.nodes = {};
+        this.current_act = 0;
+        this.current_node_id = 'act1_morning';
+        this.is_paused = false;
+      }
+      add_node(node){ this.nodes[node.node_id] = node; }
+
+      play_node(node_id){
+        this.current_node_id = node_id;
+        const node = this.nodes[node_id];
+        if(!node){
+          this.showScene('End of narrative path reached.');
+          return;
+        }
+
+        if(node.act !== null) this.current_act = node.act;
+        this.updateProgress();
+
+        let sceneText = node.text;
+        if(this.state.stats.ethan_hostility >= 80){
+          sceneText = '⚠️ [BUTTERFLY EFFECT WARNING]: Ethan Knight is actively hunting you!\n' + node.text;
+        }
+        this.showScene(sceneText);
+        this.renderStatus();
+
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+
+        if(!node.choices || node.choices.length === 0){
+          this.evaluate_ending();
+          return;
+        }
+
+        node.choices.forEach((choice) => {
+          const btn = document.createElement('button');
+          btn.textContent = choice.text;
+          btn.addEventListener('click', () => {
+            if(choice.effect) choice.effect(this.state);
+            this.play_node(choice.next_node);
+          });
+          choicesDiv.appendChild(btn);
+        });
+      }
+
+      updateProgress(){
+        const acts = ['Act 1: Morning After', 'Act 2: Heroine Crisis', 'Act 3: Investment Gala', 'Finale'];
+        document.getElementById('progress').textContent = `📍 ${acts[this.current_act] || 'Epilogue'}`;
+      }
+
+      showScene(text){
+        document.getElementById('scene').textContent = text;
+      }
+
+      renderStatus(){
+        document.getElementById('statsArea').innerHTML = Object.entries(this.state.stats).map(([k,v])=>
+          `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v}</span></div>`
+        ).join('');
+        
+        document.getElementById('flagsArea').innerHTML = Object.entries(this.state.flags).map(([k,v])=>
+          `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v ? '✓' : '✗'}</span></div>`
+        ).join('');
+        
+        document.getElementById('invArea').textContent = this.state.inventory.length > 0 
+          ? this.state.inventory.join(', ') 
+          : '(empty)';
+      }
+
+      evaluate_ending(){
+        const area = document.getElementById('endingArea');
+        area.classList.remove('hidden', 'true-ending', 'good-ending', 'bad-ending');
+        document.getElementById('choices').innerHTML = '';
+
+        let text = '';
+        let className = 'bad-ending';
+
+        if(this.state.flags.ethan_bankrupted && this.state.flags.engaged_to_nicole){
+          text = '🏆 TRUE ENDING: Absolute Villain Supremacy\n\nYou neutralized Ethan Knight and built a power dynamic with Nicole Rivers. The Villain System declares victory.';
+          className = 'true-ending';
+        } else if(this.state.flags.ethan_bankrupted){
+          text = '🥈 ENDING: Solitary Rogue\n\nYou bankrupted Ethan, but without Nicole\'s backing, you live perpetually on the run.';
+          className = 'good-ending';
+        } else {
+          text = '☠️ GAME OVER: Total Plot Erasure\n\nEthan Knight overpowers you. The Villain System terminates your existence.';
+          className = 'bad-ending';
+        }
+
+        area.classList.add(className);
+        area.innerHTML = `<div class="ending-text">${text}</div>`;
+      }
+
+      saveState(){
+        const saveData = {
+          state: this.state,
+          current_node_id: this.current_node_id,
+          current_act: this.current_act
+        };
+        localStorage.setItem('survive_hell_save', JSON.stringify(saveData));
+        alert('Progress saved successfully!');
+      }
+
+      loadState(){
+        const saved = localStorage.getItem('survive_hell_save');
+        if(!saved){
+          alert('No saved game found!');
+          return false;
+        }
+        const data = JSON.parse(saved);
+        Object.assign(this.state.stats, data.state.stats);
+        Object.assign(this.state.flags, data.state.flags);
+        this.state.inventory = data.state.inventory;
+        this.current_act = data.current_act;
+        
+        document.getElementById('endingArea').classList.add('hidden');
+        document.getElementById('game').style.display = 'block';
+        this.play_node(data.current_node_id);
+        return true;
+      }
+    }
+
+    // Node Configurations
+    const engine = new StoryEngine();
+
+    function accept_engagement_effect(state){
+      state.set_flag('engaged_to_nicole', true);
+      state.modify_stat('nicole_trust', +30);
+      state.modify_stat('system_points', +50);
+      state.inventory.push('Absolute Defense Card');
+    }
+    function refuse_engagement_effect(state){
+      state.set_flag('engaged_to_nicole', false);
+      state.modify_stat('nicole_trust', -40);
+      state.modify_stat('ethan_hostility', +30);
+    }
+    function save_heroines_effect(state){
+      state.set_flag('saved_heroines', true);
+      state.modify_stat('heroine_favor', +40);
+      state.modify_stat('ethan_hostility', +40);
+    }
+    function ignore_heroines_effect(state){
+      state.set_flag('saved_heroines', false);
+      state.modify_stat('system_points', +20);
+    }
+    function auction_clown_effect(state){
+      state.set_flag('gala_clown_outfit', true);
+      state.set_flag('ethan_bankrupted', state.flags.engaged_to_nicole || state.stats.system_points >= 120);
+    }
+    function direct_fight_effect(state){
+      state.set_flag('ethan_bankrupted', state.inventory.includes('Absolute Defense Card'));
+    }
+
+    engine.add_node(new NarrativeNode('act1_morning',
+      "You wake up next to Nicole Rivers. The Villain System alerts you that she is pushing for an engagement to tie your families together.",
+      [
+        { text: 'Accept the engagement and use her family as a shield.', next_node: 'act2_heroines', effect: accept_engagement_effect },
+        { text: 'Refuse and attempt to escape her grasp.', next_node: 'act2_heroines', effect: refuse_engagement_effect }
+      ], 0
+    ));
+
+    engine.add_node(new NarrativeNode('act2_heroines',
+      "You spot Wendy Taylor and Jessica Snow trapped in a dangerous situation. Ethan Knight is en route to rescue them.",
+      [
+        { text: 'Intervene using System Martial Arts to rescue them first.', next_node: 'act3_gala', effect: save_heroines_effect },
+        { text: 'Ignore them and let Ethan Knight take the spotlight.', next_node: 'act3_gala', effect: ignore_heroines_effect }
+      ], 1
+    ));
+
+    engine.add_node(new NarrativeNode('act3_gala',
+      "It's the Investment Gala. Ethan Knight is preparing to make a bid that will give him total control of the city's economy.",
+      [
+        { text: "Dress as a 'clown' to reduce threat level and disrupt the auction.", next_node: 'ending', effect: auction_clown_effect },
+        { text: 'Confront Ethan directly in martial combat.', next_node: 'ending', effect: direct_fight_effect }
+      ], 2
+    ));
+
+    engine.add_node(new NarrativeNode('ending', '', [], 3));
+
+    // Control Handlers
+    const startBtn = document.getElementById('startBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const newBtn = document.getElementById('newBtn');
+    const continueBtn = document.getElementById('continueBtn');
+    const gameDiv = document.getElementById('game');
+
+    startBtn.addEventListener('click', () => {
+      startBtn.style.display = 'none';
+      gameDiv.style.display = 'block';
+      continueBtn.classList.remove('hidden');
+      engine.play_node('act1_morning');
+    });
+
+    loadBtn.addEventListener('click', () => {
+      if (engine.loadState()) {
+        startBtn.style.display = 'none';
+        continueBtn.classList.remove('hidden');
+      }
+    });
+
+    newBtn.addEventListener('click', () => {
+      engine.state = new StoryState();
+      document.getElementById('endingArea').classList.add('hidden');
+      gameDiv.style.display = 'block';
+      startBtn.style.display = 'none';
+      continueBtn.classList.remove('hidden');
+      engine.play_node('act1_morning');
+    });
+
+    continueBtn.addEventListener('click', () => {
+      gameDiv.style.display = 'block';
+      engine.play_node(engine.current_node_id);
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      engine.saveState();
+    });
+  </script>
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
