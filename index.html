@@ -52,6 +52,11 @@
     .menu-wrapper {
       position: relative;
       z-index: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
     }
 
     .menu-container {
@@ -264,6 +269,9 @@
       max-width: 500px;
       box-shadow: 0 0 60px rgba(230, 57, 70, 0.4);
       animation: slideUp 0.3s ease-out;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     @keyframes slideUp {
@@ -420,31 +428,192 @@
       transform: scale(1.1);
     }
 
-    .modal-content {
-      position: relative;
+    /* Game screen styles */
+    #gameScreen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      z-index: 50;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    #gameScreen.active {
+      display: block;
+    }
+
+    .center {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    #progress {
+      background: #1a1a2e;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #0ea5a4;
+      font-weight: 600;
+    }
+
+    #scene {
+      background: #0f172a;
+      padding: 18px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      min-height: 120px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      border: 1px solid #0ea5a4;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .choices {
+      margin-bottom: 12px;
+    }
+
+    .choices button {
+      display: block;
+      margin: 8px 0;
+      width: 100%;
+      text-align: left;
+      padding: 12px 16px;
+      background: #1a3a3a;
+      border: 1px solid #0ea5a4;
+      color: #0ea5a4;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .choices button:hover {
+      background: #0ea5a4;
+      color: #012;
+      transform: translateX(5px);
+    }
+
+    .status {
+      background: #071024;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+      border: 1px solid #0ea5a4;
+    }
+
+    .big {
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 12px;
+      color: #0ea5a4;
+    }
+
+    .big:first-child {
+      margin-top: 0;
+    }
+
+    .stat-row {
+      padding: 4px 0;
+      display: flex;
+      justify-content: space-between;
+      color: #aaa;
+    }
+
+    .stat-label {
+      color: #aaa;
+    }
+
+    .stat-value {
+      color: #0ea5a4;
+      font-weight: 600;
+    }
+
+    #endingArea {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 8px;
+      background: #1a1a2e;
+      border-left: 4px solid #0ea5a4;
+    }
+
+    #endingArea.true-ending {
+      border-left-color: #ffd700;
+      background: rgba(255, 215, 0, 0.05);
+    }
+
+    #endingArea.good-ending {
+      border-left-color: #90ee90;
+      background: rgba(144, 238, 144, 0.05);
+    }
+
+    #endingArea.bad-ending {
+      border-left-color: #ff6b6b;
+      background: rgba(255, 107, 107, 0.05);
+    }
+
+    #endingArea .ending-text {
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      color: #eee;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .game-controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .game-controls button {
+      background: #e63946;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .game-controls button:hover {
+      background: #ffb703;
+      color: #0a0202;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 183, 3, 0.3);
     }
   </style>
 </head>
 <body>
-  <div class="menu-wrapper">
+  <div class="menu-wrapper" id="menuWrapper">
     <div class="menu-container">
       <h1 class="game-title">SURVIVING THIS HELL<span class="subtitle">ISN'T SIMPLE</span></h1>
       <div class="version">v1.0.0 BETA</div>
 
       <div class="difficulty-selector">
         <button class="difficulty-btn active" onclick="setDifficulty('easy', this)">EASY</button>
-        <button class="difficulty-btn" onclick="setDifficulty('normal', this)">NORMAL</button>
+        <button class="difficulty-btn" onclick="setDifficulty('medium', this)">NORMAL</button>
         <button class="difficulty-btn" onclick="setDifficulty('hard', this)">HARD</button>
         <button class="difficulty-btn" onclick="setDifficulty('hell', this)">HELL MODE</button>
       </div>
 
-      <!-- Primary actions wired directly to game functions -->
       <div class="button-group">
         <button class="menu-btn primary" onclick="startGame()">START GAME</button>
         <button class="menu-btn" onclick="loadGame()">LOAD GAME</button>
       </div>
 
-      <!-- Save button (saves current session to localStorage) -->
       <div class="button-group full-width">
         <button class="menu-btn" onclick="saveGame()">SAVE GAME</button>
       </div>
@@ -463,6 +632,32 @@
       <div class="secondary-buttons">
         <button class="menu-btn secondary" onclick="openModal('about')">ℹ ABOUT</button>
         <button class="menu-btn secondary" onclick="quitGame()" style="grid-column: span 2;">EXIT GAME</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="gameScreen">
+    <div class="center">
+      <div id="progress"></div>
+      <div id="scene"></div>
+      <div class="choices" id="choices"></div>
+
+      <div class="status" id="status">
+        <div class="big">Stats</div>
+        <div id="statsArea"></div>
+        <div class="big">Flags</div>
+        <div id="flagsArea"></div>
+        <div class="big">Inventory</div>
+        <div id="invArea"></div>
+      </div>
+
+      <div id="endingArea" class="hidden"></div>
+
+      <div class="game-controls">
+        <button onclick="saveGame()">SAVE</button>
+        <button onclick="pauseGame()">PAUSE</button>
+        <button onclick="backToMenu()">BACK TO MENU</button>
       </div>
     </div>
   </div>
@@ -610,14 +805,14 @@
       
       <div class="controls-info">
         <p><strong>SURVIVING THIS HELL</strong></p>
-        <p style="margin: 1rem 0; line-height: 1.6;">A dark and intense survival experience that tests your will to survive. Navigate through treacherous environments, manage limited resources, and co[...]</p>
+        <p style="margin: 1rem 0; line-height: 1.6;">A dark and intense narrative experience where your choices determine your fate. Navigate the web of family politics, romance, and ambition as you fight to survive against Ethan Knight's schemes. Multiple endings await.</p>
         
         <p><strong>Version:</strong> 1.0.0 BETA</p>
         <p><strong>Platform:</strong> Web-Based</p>
-        <p><strong>Genre:</strong> Survival Horror / Action</p>
+        <p><strong>Genre:</strong> Interactive Fiction / Narrative Adventure</p>
         
         <p style="margin-top: 1.5rem; font-size: 0.85rem; opacity: 0.8;">
-          ⚠ WARNING: This game contains mature themes and intense imagery.
+          ⚠ WARNING: This game contains mature themes and intense storytelling.
         </p>
       </div>
 
@@ -628,192 +823,640 @@
   </div>
 
   <script>
-    // Basic in-memory game state — replace with your real game state object when integrating
+    // ==========================================
+    // CORE STORY ENGINE & BUTTERFLY SYSTEM
+    // ==========================================
+
+    class StoryState {
+      constructor(difficulty = "medium") {
+        this.difficulty = difficulty.toLowerCase();
+
+        if (this.difficulty === "easy") {
+          this.stat_multiplier = 0.7;
+          this.system_points = 150;
+          this.ethan_hostility = 0;
+          this.nicole_pressure = 20;
+        } else if (this.difficulty === "hard") {
+          this.stat_multiplier = 1.5;
+          this.system_points = 50;
+          this.ethan_hostility = 40;
+          this.nicole_pressure = 70;
+        } else if (this.difficulty === "hell") {
+          this.stat_multiplier = 2.0;
+          this.system_points = 30;
+          this.ethan_hostility = 60;
+          this.nicole_pressure = 90;
+        } else {
+          this.stat_multiplier = 1.0;
+          this.system_points = 100;
+          this.ethan_hostility = 10;
+          this.nicole_pressure = 40;
+        }
+
+        this.stats = {
+          nicole_trust: 50,
+          ethan_hostility: this.ethan_hostility,
+          nicole_pressure: this.nicole_pressure,
+          heroine_favor: 0,
+          system_points: this.system_points,
+        };
+
+        this.flags = {
+          engaged_to_nicole: false,
+          saved_heroines: false,
+          gala_clown_outfit: false,
+          ethan_bankrupted: false,
+          legal_sabotage: false,
+          ethan_ambush_ready: false,
+        };
+
+        this.inventory = [];
+      }
+
+      modify_stat(stat_name, value) {
+        let original_value = value;
+        if (value < 0) {
+          value = Math.floor(value * this.stat_multiplier);
+        }
+        if (this.stats.hasOwnProperty(stat_name)) {
+          this.stats[stat_name] = Math.max(0, Math.min(100, this.stats[stat_name] + value));
+        }
+      }
+
+      apply_turn_decay() {
+        if (this.difficulty === "hard") {
+          this.modify_stat("nicole_pressure", +10);
+          this.modify_stat("system_points", -10);
+        } else if (this.difficulty === "hell") {
+          this.modify_stat("nicole_pressure", +15);
+          this.modify_stat("system_points", -15);
+        }
+      }
+
+      set_flag(flag_name, status = true) {
+        this.flags[flag_name] = status;
+      }
+
+      debug_summary() {
+        return `Stats: ${JSON.stringify(this.stats)} | Flags: ${JSON.stringify(this.flags)} | Inventory: ${this.inventory.join(', ')}`;
+      }
+    }
+
+    class NarrativeNode {
+      constructor(node_id, text, choices, act = null) {
+        this.node_id = node_id;
+        this.text = text;
+        this.choices = choices;
+        this.act = act;
+      }
+    }
+
+    class ButterflyEffectSystem {
+      constructor() {
+        this.logs = [];
+        this.outcome_modifiers = {};
+      }
+
+      reset() {
+        this.logs = [];
+        this.outcome_modifiers = {};
+      }
+
+      apply_rules_before_node(node, state) {
+        let disabled_indices = [];
+        this.outcome_modifiers = {};
+
+        // Rule A: Legal sabotage
+        if (!state.flags.engaged_to_nicole && state.stats.nicole_pressure >= 50) {
+          if (!state.flags.legal_sabotage) {
+            state.set_flag("legal_sabotage", true);
+            this.logs.push("Rule A fired: Legal sabotage activated (nicole_pressure high & not engaged).");
+          }
+        }
+
+        // Rule B: Ethan hostility disables direct confrontation
+        if (state.stats.ethan_hostility >= 80) {
+          for (let idx = 0; idx < node.choices.length; idx++) {
+            const ch = node.choices[idx];
+            if (ch.text.toLowerCase().includes("direct") || ch.text.toLowerCase().includes("confront")) {
+              disabled_indices.push(idx);
+              this.logs.push(`Rule B fired: Direct confrontation disabled on node '${node.node_id}' due to Ethan hostility.`);
+              if (!state.flags.ethan_ambush_ready) {
+                state.set_flag("ethan_ambush_ready", true);
+                this.logs.push("  - Ethan ambush flag set.");
+              }
+            }
+          }
+        }
+
+        // Rule C: Saving heroines grants influence
+        if (state.flags.saved_heroines) {
+          if (state.stats.nicole_trust < 40) {
+            state.modify_stat("nicole_pressure", +5);
+            this.logs.push("Rule C: Saving heroines increased Nicole pressure due to jealousy.");
+          }
+          this.outcome_modifiers.auction_influence = 10;
+          this.logs.push("Rule C: Saving heroines grants auction influence +10.");
+        }
+
+        // Rule D: Legal sabotage penalty
+        if (state.flags.legal_sabotage) {
+          this.outcome_modifiers.legal_sabotage_penalty = -20;
+          this.logs.push("Rule D: Legal sabotage will apply -20 to system points at Gala outcome check.");
+        }
+
+        // Rule E: Nicole pressure penalty
+        if (state.stats.nicole_pressure >= 75) {
+          this.outcome_modifiers.nicole_pressure_penalty = -15;
+          this.logs.push("Rule E: Nicole pressure penalty active (-15 to relevant checks).");
+        }
+
+        return disabled_indices;
+      }
+
+      apply_rules_before_outcome(node_id, state, base_success, context = "") {
+        let score = 0;
+        score += base_success ? 100 : 0;
+        score += this.outcome_modifiers.auction_influence || 0;
+        score += this.outcome_modifiers.legal_sabotage_penalty || 0;
+        score += this.outcome_modifiers.nicole_pressure_penalty || 0;
+        score += Math.floor((state.stats.system_points - 50) / 1.5);
+
+        if (state.flags.ethan_ambush_ready && node_id === "act3_gala") {
+          score -= 40;
+          this.logs.push("Rule: Ethan ambush penalized gala outcome (-40).");
+        }
+
+        const final_success = score >= 80;
+        this.logs.push(`Outcome calc for ${context || node_id}: base=${base_success}, score=${score} -> ${final_success ? 'SUCCESS' : 'FAIL'}`);
+        return final_success;
+      }
+    }
+
+    class StoryEngine {
+      constructor(difficulty = "medium") {
+        this.state = new StoryState(difficulty);
+        this.nodes = {};
+        this.butterfly = new ButterflyEffectSystem();
+        this.current_act = 0;
+      }
+
+      add_node(node) {
+        this.nodes[node.node_id] = node;
+      }
+
+      compute_ending_string() {
+        const required_points = this.state.difficulty === "easy" ? 50 : 100;
+        if (
+          this.state.flags.ethan_bankrupted &&
+          this.state.flags.engaged_to_nicole &&
+          this.state.stats.system_points >= required_points
+        ) {
+          return "🏆 TRUE ENDING: Absolute Villain Supremacy";
+        } else if (this.state.flags.ethan_bankrupted) {
+          return "🥈 ENDING: Solitary Rogue";
+        } else {
+          return "☠️ GAME OVER: Total Plot Erasure";
+        }
+      }
+
+      reset_state(difficulty) {
+        this.state = new StoryState(difficulty);
+        this.butterfly.reset();
+        this.current_act = 0;
+      }
+
+      play_node(node_id) {
+        const node = this.nodes[node_id];
+        if (!node) {
+          showScene("End of narrative path reached.");
+          return;
+        }
+
+        if (node.act) this.current_act = node.act;
+        updateProgress(this.current_act);
+
+        let sceneText = node.text;
+        if (this.state.stats.ethan_hostility >= 80) {
+          sceneText = "⚠️ [BUTTERFLY EFFECT WARNING]: Ethan Knight is actively hunting you!\n" + node.text;
+        }
+        showScene(sceneText);
+        renderStatus(this.state);
+
+        if (!node.choices || node.choices.length === 0) {
+          evaluate_ending(this);
+          return;
+        }
+
+        // Apply butterfly rules
+        const disabled = this.butterfly.apply_rules_before_node(node, this.state);
+        if (this.butterfly.logs.length > 0) {
+          console.log("Butterfly logs:", this.butterfly.logs);
+          this.butterfly.logs = [];
+        }
+
+        const choicesDiv = document.getElementById("choices");
+        choicesDiv.innerHTML = "";
+        node.choices.forEach((choice, idx) => {
+          if (disabled.includes(idx)) {
+            return; // Skip disabled choices
+          }
+
+          const btn = document.createElement("button");
+          btn.textContent = choice.text;
+          btn.addEventListener("click", () => {
+            if (choice.effect) {
+              choice.effect(this.state, this.butterfly);
+            }
+            this.play_node(choice.next_node);
+          });
+          choicesDiv.appendChild(btn);
+        });
+      }
+    }
+
+    // ==========================================
+    // EFFECTS
+    // ==========================================
+
+    function accept_engagement_effect(state, butterfly) {
+      state.set_flag("engaged_to_nicole", true);
+      state.modify_stat("nicole_trust", +30);
+      state.modify_stat("system_points", +50);
+      if (!state.inventory.includes("Absolute Defense Card")) {
+        state.inventory.push("Absolute Defense Card");
+      }
+    }
+
+    function refuse_engagement_effect(state, butterfly) {
+      state.set_flag("engaged_to_nicole", false);
+      state.modify_stat("nicole_trust", -40);
+      state.modify_stat("nicole_pressure", +30);
+      state.modify_stat("ethan_hostility", +30);
+    }
+
+    function save_heroines_effect(state, butterfly) {
+      state.set_flag("saved_heroines", true);
+      state.modify_stat("heroine_favor", +40);
+      state.modify_stat("ethan_hostility", +40);
+    }
+
+    function ignore_heroines_effect(state, butterfly) {
+      state.set_flag("saved_heroines", false);
+      state.modify_stat("system_points", +20);
+    }
+
+    function auction_clown_effect(state, butterfly) {
+      let base_success;
+      if (state.difficulty === "hard" || state.difficulty === "hell") {
+        base_success = state.flags.engaged_to_nicole && state.stats.system_points >= 100;
+      } else {
+        base_success = state.flags.engaged_to_nicole || state.stats.system_points >= 80;
+      }
+      const final_success = butterfly.apply_rules_before_outcome("act3_gala", state, base_success, "auction");
+      state.set_flag("ethan_bankrupted", final_success);
+    }
+
+    function direct_fight_effect(state, butterfly) {
+      const base_success = state.inventory.includes("Absolute Defense Card");
+      const final_success = butterfly.apply_rules_before_outcome("act3_gala", state, base_success, "direct_fight");
+      state.set_flag("ethan_bankrupted", final_success);
+    }
+
+    // ==========================================
+    // UI HELPERS
+    // ==========================================
+
+    function showScene(text) {
+      const scene = document.getElementById("scene");
+      scene.textContent = text;
+    }
+
+    function updateProgress(current_act) {
+      const acts = ["Act 1: Morning", "Act 2: Crisis", "Act 3: Gala", "Finale"];
+      document.getElementById("progress").textContent = `📍 ${acts[current_act] || "Epilogue"}`;
+    }
+
+    function renderStatus(state) {
+      const statsArea = document.getElementById("statsArea");
+      statsArea.innerHTML = Object.entries(state.stats)
+        .map(([k, v]) => `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v}</span></div>`)
+        .join("");
+
+      const flagsArea = document.getElementById("flagsArea");
+      flagsArea.innerHTML = Object.entries(state.flags)
+        .map(([k, v]) => `<div class="stat-row"><span class="stat-label">${k}:</span><span class="stat-value">${v ? "✓" : "✗"}</span></div>`)
+        .join("");
+
+      document.getElementById("invArea").textContent = state.inventory.length > 0 ? state.inventory.join(", ") : "(empty)";
+    }
+
+    function evaluate_ending(engine) {
+      const area = document.getElementById("endingArea");
+      area.classList.remove("hidden", "true-ending", "good-ending", "bad-ending");
+      const choicesDiv = document.getElementById("choices");
+      choicesDiv.innerHTML = "";
+
+      let text = "";
+      let className = "bad-ending";
+
+      if (engine.state.flags.ethan_bankrupted && engine.state.flags.engaged_to_nicole) {
+        text =
+          "🏆 TRUE ENDING: Absolute Villain Supremacy\n\n" +
+          "You have neutralized Ethan Knight and built an unshakeable power dynamic with Nicole Rivers. The city bows before you. The Villain System trembles at your name. Victory is absolute.";
+        className = "true-ending";
+      } else if (engine.state.flags.ethan_bankrupted) {
+        text =
+          "🥈 ENDING: Solitary Rogue\n\n" +
+          "You bankrupted Ethan and survived the gala, but without Nicole's backing, you live perpetually on the run. Victory tastes like exile. The price of freedom is loneliness.";
+        className = "good-ending";
+      } else {
+        text =
+          "☠️ GAME OVER: Total Plot Erasure\n\n" +
+          "Ethan Knight overpowers you. The Villain System terminates your existence. Your story ends here. Better luck in your next life.";
+        className = "bad-ending";
+      }
+
+      area.classList.add(className);
+      const endingText = document.createElement("div");
+      endingText.className = "ending-text";
+      endingText.textContent = text;
+      area.appendChild(endingText);
+
+      const restart = document.createElement("button");
+      restart.textContent = "Play Again";
+      restart.style.marginTop = "12px";
+      restart.addEventListener("click", () => {
+        backToMenu();
+      });
+      area.appendChild(restart);
+    }
+
+    // ==========================================
+    // BUILD GAME ENGINE WITH NODES
+    // ==========================================
+
+    let gameEngine = null;
+
+    function build_story_engine(difficulty = "medium") {
+      const engine = new StoryEngine(difficulty);
+
+      engine.add_node(
+        new NarrativeNode(
+          "act1_morning",
+          "You wake up next to Nicole Rivers. The Villain System alerts you that she is pushing for an engagement to tie your families together.",
+          [
+            {
+              text: "Accept the engagement and use her family as a shield.",
+              next_node: "act2_heroines",
+              effect: accept_engagement_effect,
+            },
+            {
+              text: "Refuse and attempt to escape her grasp.",
+              next_node: "act2_heroines",
+              effect: refuse_engagement_effect,
+            },
+          ],
+          0
+        )
+      );
+
+      engine.add_node(
+        new NarrativeNode(
+          "act2_heroines",
+          "You spot Wendy Taylor and Jessica Snow trapped in a dangerous situation. Ethan Knight is en route to rescue them.",
+          [
+            {
+              text: "Intervene using System Martial Arts to rescue them first.",
+              next_node: "act3_gala",
+              effect: save_heroines_effect,
+            },
+            {
+              text: "Ignore them and let Ethan Knight take the spotlight.",
+              next_node: "act3_gala",
+              effect: ignore_heroines_effect,
+            },
+          ],
+          1
+        )
+      );
+
+      engine.add_node(
+        new NarrativeNode(
+          "act3_gala",
+          "It's the Investment Gala. Ethan Knight is preparing to make a bid that will give him total control of the city's economy.",
+          [
+            {
+              text: "Dress as a 'clown' to reduce threat level and disrupt the auction.",
+              next_node: "ending",
+              effect: auction_clown_effect,
+            },
+            {
+              text: "Confront Ethan directly in martial combat.",
+              next_node: "ending",
+              effect: direct_fight_effect,
+            },
+          ],
+          2
+        )
+      );
+
+      engine.add_node(new NarrativeNode("ending", "", [], 3));
+
+      return engine;
+    }
+
+    // ==========================================
+    // MENU & GAME STATE MANAGEMENT
+    // ==========================================
+
     let gameState = {
       currentScene: 1,
       isPaused: false,
       timestamp: Date.now(),
-      // add more properties as needed: player stats, inventory, scene-specific variables, etc.
-      progress: {}
+      progress: {},
+      difficulty: "easy",
     };
 
-    const SAVE_KEY = 'survive_save_v1';
+    const SAVE_KEY = "survive_save_v1";
 
-    // Existing settings object
-    let currentDifficulty = 'easy';
+    let currentDifficulty = "easy";
     let gameSettings = {
       masterVolume: 70,
       musicVolume: 70,
       sfxVolume: 80,
       screenShake: true,
       bloodEffects: true,
-      subtitles: false
+      subtitles: false,
     };
 
-    // ---------- Game control functions wired to menu buttons ----------
     function startGame() {
-      // Start a fresh play session but DO NOT load saved data
-      gameState.currentScene = 1; // first scene
+      gameState.currentScene = 1;
       gameState.isPaused = false;
       gameState.timestamp = Date.now();
-      console.log('Game started: scene', gameState.currentScene);
-      playSound('start');
-      // TODO: Replace with your real scene-loading logic
-      enterScene(gameState.currentScene);
+      gameState.difficulty = currentDifficulty;
+
+      gameEngine = build_story_engine(currentDifficulty);
+      document.getElementById("menuWrapper").style.display = "none";
+      document.getElementById("gameScreen").classList.add("active");
+
+      gameEngine.play_node("act1_morning");
+      playSound("start");
     }
 
     function saveGame() {
-      // Persist the current in-memory gameState to localStorage
       try {
         gameState.timestamp = Date.now();
+        if (gameEngine) {
+          gameState.engineState = {
+            stats: gameEngine.state.stats,
+            flags: gameEngine.state.flags,
+            inventory: gameEngine.state.inventory,
+          };
+        }
         localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-        console.log('Game saved:', gameState);
-        playSound('save');
+        console.log("Game saved");
+        playSound("save");
       } catch (err) {
-        console.error('Failed to save game:', err);
-        playSound('error');
+        console.error("Failed to save game:", err);
+        playSound("error");
       }
     }
 
     function loadGame() {
-      // Load saved state from localStorage and apply it to the game
       try {
         const saved = localStorage.getItem(SAVE_KEY);
         if (!saved) {
-          console.log('No save found.');
-          playSound('error');
+          console.log("No save found.");
+          playSound("error");
           return;
         }
         const parsed = JSON.parse(saved);
-        // Simple merge — replace entirely or merge depending on how your real game is structured
         gameState = Object.assign({}, gameState, parsed);
-        console.log('Loaded save:', gameState);
-        playSound('load');
-        // TODO: Replace with actual scene restoring logic
-        enterScene(gameState.currentScene);
+        currentDifficulty = gameState.difficulty || "easy";
+
+        gameEngine = build_story_engine(gameState.difficulty);
+        if (gameState.engineState) {
+          gameEngine.state.stats = gameState.engineState.stats;
+          gameEngine.state.flags = gameState.engineState.flags;
+          gameEngine.state.inventory = gameState.engineState.inventory;
+        }
+
+        document.getElementById("menuWrapper").style.display = "none";
+        document.getElementById("gameScreen").classList.add("active");
+
+        console.log("Game loaded");
+        playSound("load");
+        // Resume from current act (simplified; in production track current node)
+        gameEngine.play_node("act1_morning");
       } catch (err) {
-        console.error('Failed to load save:', err);
-        playSound('error');
+        console.error("Failed to load save:", err);
+        playSound("error");
       }
     }
 
     function newGame() {
-      // Reset progress and start from the first scene
       gameState = {
         currentScene: 1,
         isPaused: false,
         timestamp: Date.now(),
-        progress: {}
+        progress: {},
+        difficulty: currentDifficulty,
       };
-      console.log('New game started: scene', gameState.currentScene);
-      playSound('click');
-      // Optionally clear saved progress — comment out if you want to keep saves
-      // localStorage.removeItem(SAVE_KEY);
-      enterScene(gameState.currentScene);
+      console.log("New game started");
+      playSound("click");
+      startGame();
     }
 
     function continueGame() {
-      // Resume if the game was paused; otherwise inform user
       if (gameState.isPaused) {
         gameState.isPaused = false;
-        console.log('Game resumed at scene', gameState.currentScene);
-        playSound('click');
-        // TODO: Restore any paused timers, animations, or game loops
-        resumeScene();
+        document.getElementById("menuWrapper").style.display = "none";
+        document.getElementById("gameScreen").classList.add("active");
+        console.log("Game resumed");
+        playSound("click");
       } else {
-        console.log('No paused game to continue.');
-        playSound('error');
+        console.log("No paused game to continue.");
+        playSound("error");
       }
-    }
-
-    function quitGame() {
-      console.log('Exiting game...');
-      playSound('quit');
-      // TODO: implement real quit logic if needed
-      // For web builds you might navigate away or close overlays
-    }
-
-    // Placeholder helpers to simulate scene entry/resume
-    function enterScene(sceneNumber) {
-      console.log(`(placeholder) Entering scene ${sceneNumber}`);
-      // Example: set a page state, show the game canvas, hide menu, etc.
-      // Hide the menu container to simulate entering the game
-      document.querySelector('.menu-container').style.display = 'none';
-      // Ensure paused flag is false
-      gameState.isPaused = false;
-    }
-
-    function resumeScene() {
-      console.log('(placeholder) Resuming scene', gameState.currentScene);
-      // Example: re-enable game loop, hide menu overlays
-      document.querySelector('.menu-container').style.display = 'none';
     }
 
     function pauseGame() {
       gameState.isPaused = true;
-      console.log('Game paused');
-      // Show menu overlay to allow Continue/SAVE/etc
-      document.querySelector('.menu-container').style.display = 'block';
+      console.log("Game paused");
+      document.getElementById("menuWrapper").style.display = "flex";
+      document.getElementById("gameScreen").classList.remove("active");
+      playSound("click");
     }
 
-    // -----------------------------------------------------------------
+    function backToMenu() {
+      document.getElementById("menuWrapper").style.display = "flex";
+      document.getElementById("gameScreen").classList.remove("active");
+      gameState.isPaused = false;
+      gameEngine = null;
+      playSound("click");
+    }
+
+    function quitGame() {
+      console.log("Exiting game...");
+      playSound("quit");
+    }
 
     function setDifficulty(difficulty, element) {
       currentDifficulty = difficulty;
-      document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
-      element.classList.add('active');
+      document.querySelectorAll(".difficulty-btn").forEach((btn) => btn.classList.remove("active"));
+      element.classList.add("active");
       console.log(`Difficulty set to: ${difficulty.toUpperCase()}`);
-      playSound('click');
+      playSound("click");
     }
 
     function openModal(modalType) {
       const modals = {
-        'settings': 'settingsModal',
-        'controls': 'controlsModal',
-        'credits': 'creditsModal',
-        'about': 'aboutModal'
+        settings: "settingsModal",
+        controls: "controlsModal",
+        credits: "creditsModal",
+        about: "aboutModal",
       };
-      document.getElementById(modals[modalType]).classList.add('active');
-      playSound('click');
+      if (modals[modalType]) {
+        document.getElementById(modals[modalType]).classList.add("active");
+        playSound("click");
+      }
     }
 
     function closeModal() {
-      document.querySelectorAll('.settings-modal').forEach(modal => modal.classList.remove('active'));
-      playSound('click');
+      document.querySelectorAll(".settings-modal").forEach((modal) => modal.classList.remove("active"));
+      playSound("click");
     }
 
     function toggleSetting(element) {
-      element.classList.toggle('active');
-      playSound('click');
+      element.classList.toggle("active");
+      playSound("click");
     }
 
     function saveSettings() {
-      // Update settings from inputs (basic example)
-      gameSettings.masterVolume = Number(document.getElementById('masterVolume').value || 70);
-      gameSettings.musicVolume = Number(document.getElementById('musicVolume').value || 70);
-      gameSettings.sfxVolume = Number(document.getElementById('sfxVolume').value || 80);
-      console.log('Settings saved:', gameSettings);
-      playSound('success');
+      gameSettings.masterVolume = Number(document.getElementById("masterVolume").value || 70);
+      gameSettings.musicVolume = Number(document.getElementById("musicVolume").value || 70);
+      gameSettings.sfxVolume = Number(document.getElementById("sfxVolume").value || 80);
+      console.log("Settings saved:", gameSettings);
+      playSound("success");
       setTimeout(() => closeModal(), 300);
     }
 
     function playSound(type) {
-      // TODO: Implement actual sound playback
       console.log(`Playing sound: ${type}`);
     }
 
-    // Close modals when clicking outside
-    document.querySelectorAll('.settings-modal').forEach(modal => {
-      modal.addEventListener('click', (e) => {
+    // Close modals on outside click
+    document.querySelectorAll(".settings-modal").forEach((modal) => {
+      modal.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
       });
     });
 
-    // Keyboard shortcuts: ESC closes modals, P toggles pause
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
-      if (e.key.toLowerCase() === 'p') {
-        // Toggle pause
+    // Keyboard shortcuts
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+      if (e.key.toLowerCase() === "p" && document.getElementById("gameScreen").classList.contains("active")) {
         if (gameState.isPaused) {
           continueGame();
         } else {
@@ -822,17 +1465,16 @@
       }
     });
 
-    // On load, try to restore save into memory but do NOT automatically start the game
+    // Initialize
     (function initialize() {
       const saved = localStorage.getItem(SAVE_KEY);
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          // Keep the existing default structure and merge saved values
           gameState = Object.assign({}, gameState, parsed);
-          console.log('Found existing save (not auto-loaded):', gameState);
+          console.log("Found existing save");
         } catch (err) {
-          console.warn('Failed to parse existing save on init:', err);
+          console.warn("Failed to parse existing save on init:", err);
         }
       }
     })();
